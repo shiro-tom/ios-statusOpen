@@ -37,7 +37,7 @@ class StatusManager: ObservableObject {
     
     // トレーニングリストに新しい項目を追加する
     func addTraining(name: String) {
-        let newTraining = TrainingList(name: name, level: 0, trainingItems: [])
+        let newTraining = TrainingList(name: name, trainingItems: [])
         trainingList.append(newTraining)
     }
     
@@ -81,6 +81,28 @@ class StatusManager: ObservableObject {
         // UserDefaultsからも削除
         saveTrainingList()
     }
+    
+    
+    
+    // 全体のレベル計算用プロパティ
+    var overallLevel: Double {
+        let totalElements = trainingList.count
+        let levelSum = trainingList.reduce(0) { $0 + $1.level }
+        return totalElements > 0 ? levelSum / (Double(totalElements)): 0
+    }
+    
+    
+    func gradientColors(for level: Double) -> [Color] {
+        // レベルに応じてグラデーションの色を変える
+        if level < 0.3 {
+            return [Color.yellow, Color.orange] // 黄色からオレンジ
+        } else if level < 0.7 {
+            return [Color.orange, Color.red] // オレンジから赤
+        } else {
+            return [Color.red, Color.purple] // 赤から紫
+        }
+    }
+
     
 }
 

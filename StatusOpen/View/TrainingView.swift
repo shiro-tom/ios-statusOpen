@@ -11,37 +11,73 @@ import Foundation
 struct TrainingView: View {
     @EnvironmentObject var statusManager: StatusManager
     @State private var newItemName: String = ""
-    var training: TrainingList  // 受け取るプロパティ
+    @State private var showDeleteAlert = false
+    @State private var deleteIndexSet: IndexSet?
+    @Binding var training: TrainingList
     
     var body: some View {
-        VStack {
+        VStack(alignment: .leading) {
+            // トレーニング情報の表示
             Text(training.name)
                 .font(.title)
-            Text("Level: \(training.level, specifier: "%.1f")")
-                .font(.subheadline)
-            ProgressView(value: training.level)
-                .progressViewStyle(LinearProgressViewStyle())
-                .frame(width: 100)
+            HStack{
+                Text("Lv, : \(training.level * 100, specifier: "%.1f")")
+                    .font(.subheadline)
+                
+                
+                CustomProgressBarSmall(progress: training.level)
+                    .frame(width: 150, height: 25)
+                //    .padding(.top, 10)
+            }
             
             
-            
+            // アイテムリスト
             List {
-                ForEach(training.trainingItems) { item in
-                    Text(item.detailName)
+                ForEach($training.trainingItems) { $item in
+                    HStack {
+                        // チェックボックス
+                        Button(action: {
+                            item.isChecked.toggle()
+                        }) {
+                            Image(systemName: item.isChecked ? "checkmark.square" : "square")
+                        }
+                        .buttonStyle(BorderlessButtonStyle())
+                        
+                        Text(item.detailName)
+                    }
                 }
                 .onDelete { indexSet in
-                    if let index = indexSet.first {
-                        // アイテムを削除
-                        if let trainingIndex = statusManager.trainingList.firstIndex(where: { $0.id == training.id }) {
-                            statusManager.trainingList[trainingIndex].removeTrainingItem(at: index)
-                        }
-                    }
+                    showDeleteAlert = true
+                    deleteIndexSet = indexSet
                 }
             }
             
+            // 削除確認アラート
+            .alert(isPresented: $showDeleteAlert) {
+                Alert(
+                    title: Text("本当に削除しますか？"),
+                    message: Text("このアイテムを削除すると元に戻せません。"),
+                    primaryButton: .destructive(Text("削除")) {
+                        if let indexSet = deleteIndexSet,
+                           let trainingIndex = statusManager.trainingList.firstIndex(where: { $0.id == training.id }) {
+                            for index in indexSet {
+                                statusManager.trainingList[trainingIndex].removeTrainingItem(at: index)
+                            }
+                            deleteIndexSet = nil
+                        }
+                    },
+                    secondaryButton: .cancel(Text("キャンセル"))
+                )
+            }
+            
+            // 合計アイテム数とチェック済みアイテム数の表示
+            Text("合計アイテム数: \(training.totalItemCount)")
+            Text("チェック済みアイテム数: \(training.checkedItemCount)")
+            
+            // 新しいアイテムを追加
             TextField("新しいアイテムを追加", text: $newItemName)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
-                .padding()
+                .padding(.top, 10)
             
             Button("アイテムを追加") {
                 if !newItemName.isEmpty {
@@ -51,10 +87,16 @@ struct TrainingView: View {
                     }
                 }
             }
-            .padding()
-            
-            
+            .padding(.top, 5)
         }
         .padding()
     }
 }
+
+
+
+
+
+
+
+

@@ -21,14 +21,19 @@ struct SettingsView: View {
     
     var body: some View {
         VStack {
-            currentUserNameView()
-            userNameInputView()
-            trainingInputView()
-            trainingListView()
+           
+                Section(header: Text("Profile Setting")){
+                    //     currentUserNameView()
+                    userNameInputView()
+                }
+                Section(header: Text("Item Steeing")){
+                    trainingInputView()
+                    trainingListView()
+                }
             Spacer()
         }
-        .navigationTitle("Settings")
-        .navigationBarTitleDisplayMode(.inline)
+//        .navigationTitle("Settings")
+//        .navigationBarTitleDisplayMode(.inline)
         .alert(isPresented: $showAlert) {
                    Alert(
                        title: Text("削除の確認"),
@@ -51,13 +56,13 @@ struct SettingsView: View {
             Text("現在の名前")
             Text(statusManager.userProfile.name)
         }
-        .padding(.top, 50)
+//        .padding(.top, 50)
     }
     
     // 新しいユーザー名の入力と変更ボタン
     private func userNameInputView() -> some View {
         VStack {
-            TextField("新しいユーザー名を入力", text: $userNewName)
+            TextField("新しいユーザー名を入力　現在の名前\(statusManager.userProfile.name)", text: $userNewName)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .padding()
             
@@ -70,6 +75,7 @@ struct SettingsView: View {
                 buttonLabel("変更")
             }
         }
+        .padding(.bottom, 30)
     }
     
     // トレーニング項目リスト

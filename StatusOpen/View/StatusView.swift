@@ -27,8 +27,8 @@ struct StatusView: View {
                 
                 // トレーニング項目のリスト
                 List {
-                    ForEach(statusManager.trainingList) { training in
-                        NavigationLink(destination: TrainingView(training: training)) {
+                    ForEach($statusManager.trainingList) { $training in
+                        NavigationLink(destination: TrainingView(training: $training)) {
                             TrainingRowView(training: training)
                         }
                     }
@@ -58,14 +58,22 @@ struct HeaderView: View {
                 HStack {
                     Text("Lv,")
                         .font(.caption)
-                    Text("\(mainLevel * 10, specifier: "%.0f")")  // レベル表示
+                    Text("\(statusManager.overallLevel * 100, specifier: "%.2f")")  // レベル表示
                         .font(.caption)
                 }
                 
-                // レベルを視覚的に表すバー
-                ProgressView(value: mainLevel)
-                    .progressViewStyle(LinearProgressViewStyle())
-                    .frame(width: 100)
+      
+//                ProgressView(value: statusManager.overallLevel)
+//                    .progressViewStyle(LinearProgressViewStyle())
+//                    .frame(width: 100)
+                
+                
+                // ゲーム風の進行状況バー
+                CustomProgressBar(progress: statusManager.overallLevel)
+                    .frame(width: 250, height: 25)
+                    .padding(.top, 10)
+                
+                
                 
                 // 名前
                 Text("\(statusManager.userProfile.name)")
@@ -76,25 +84,68 @@ struct HeaderView: View {
     }
 }
 
+
+
+// 洗練された進行状況バー
+//struct ProgressBarView: View {
+//    var progress: Double
+//    
+//    var body: some View {
+//        ZStack {
+//            // バーの背景（グレー）
+//            RoundedRectangle(cornerRadius: 12)
+//                .fill(Color.gray.opacity(0.2))
+//                .frame(height: 25)
+//            
+//            // 進行状況バー（グラデーション）
+//            RoundedRectangle(cornerRadius: 12)
+//                .fill(LinearGradient(gradient: Gradient(colors: [Color.blue, Color.green]), startPoint: .leading, endPoint: .trailing))
+//                .frame(width: CGFloat(progress) * 250, height: 25)
+//                .animation(.easeInOut(duration: 0.5), value: progress)
+//            
+//            // 進行状況のテキスト（％表示）
+//            Text("\(Int(progress * 100))%")
+//                .foregroundColor(.white)
+//                .bold()
+//                .font(.system(size: 14))
+//                .padding(.leading, 10)
+//                .opacity(progress > 0 ? 1 : 0)  // 進行状況が0の場合は非表示
+//        }
+//    }
+//}
+
+
+
+
 // トレーニング行のビュー
 struct TrainingRowView: View {
     let training: TrainingList
+    @EnvironmentObject var statusManager: StatusManager
 
     var body: some View {
         VStack(alignment: .leading) {
             Text(training.name)
             Spacer()
             HStack {
-                Text("Lv: \(training.level, specifier: "%.1f")")
+                Text("Lv, \(training.level * 100, specifier: "%.1f")")
                     .font(.caption)
                 
                 // レベルバー
-                ProgressView(value: training.level * 0.1)
-                    .progressViewStyle(LinearProgressViewStyle())
-                    .frame(width: 100)
+//                ProgressView(value: training.level)
+//                    .progressViewStyle(LinearProgressViewStyle())
+//                    .frame(width: 100)
+                
+                
+                CustomProgressBarSmall(progress: training.level)
+                    .frame(width: 150, height: 25)
+      //              .padding(.top, 10)
+                
+                
+                
             }
         }
     }
+
 }
 
 
@@ -102,7 +153,54 @@ struct TrainingRowView: View {
 
 
 
+// 進行状況バー（完全カスタムな実装）
+struct CustomProgressBar: View {
+    var progress: Double
+    
+    var body: some View {
+        HStack {
+            ZStack {
+                // 背景色
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.gray.opacity(0.2))
+                    .frame(height: 20)
+                
+                // 進行状況バー
+                GeometryReader { geometry in
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(LinearGradient(gradient: Gradient(colors: [Color.blue, Color.green]), startPoint: .leading, endPoint: .trailing))
+                        .frame(width: CGFloat(progress) * geometry.size.width, height: 20)
+                        .animation(.easeInOut(duration: 0.5), value: progress)
+                }
+            }
+            .frame(height: 20) // 高さの指定
 
 
+        }
+    }
+}
 
 
+struct CustomProgressBarSmall: View {
+    var progress: Double
+    
+    var body: some View {
+        HStack {
+            ZStack {
+                // 背景色
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color.gray.opacity(0.2))
+                    .frame(height: 10) // 小さい高さ
+                
+                // 進行状況バー
+                GeometryReader { geometry in
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(LinearGradient(gradient: Gradient(colors: [Color.blue, Color.green]), startPoint: .leading, endPoint: .trailing))
+                        .frame(width: CGFloat(progress) * geometry.size.width, height: 10) // 小さい高さ
+                        .animation(.easeInOut(duration: 0.5), value: progress)
+                }
+            }
+            .frame(height: 10) // 高さの指定
+        }
+    }
+}
