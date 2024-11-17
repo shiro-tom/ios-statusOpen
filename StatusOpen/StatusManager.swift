@@ -24,7 +24,7 @@ class StatusManager: ObservableObject {
     
     init() {
         
-        self.userProfile = Profile(name: "unknown", level: 0)
+        self.userProfile = Profile(name: "unknown", level: 0, Goal: "設定で目標を設定しよう")
         
         loadUserProfile()     // アプリ起動時にプロファイルを読み込む
         loadTrainingList()    // アプリ起動時にトレーニングリストを読み込む
@@ -33,6 +33,11 @@ class StatusManager: ObservableObject {
     // プロファイルのユーザー名を変更
     func changeUserName(name: String) {
         userProfile.name = name
+    }
+    
+    
+    func changeUserGoal(goal: String) {
+        userProfile.Goal = goal
     }
     
     // トレーニングリストに新しい項目を追加する
@@ -55,7 +60,7 @@ class StatusManager: ObservableObject {
             userProfile = decodedData
         } else {
             // 初回起動時など、データがない場合のデフォルト値
-            userProfile = Profile(name: "unknown", level: 0)
+            userProfile = Profile(name: "unknown", level: 0, Goal: "設定で目標を設定しよう")
         }
     }
     

@@ -13,4 +13,5 @@ struct Profile: Identifiable, Codable {
     var id: UUID = UUID()
     var name: String
     var level: Double
+    var Goal: String
 }

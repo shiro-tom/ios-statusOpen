@@ -7,9 +7,6 @@
 
 
 
-
-
-
 import SwiftUI
 import Foundation
 
@@ -18,24 +15,46 @@ struct StatusView: View {
      
     var body: some View {
         NavigationStack {
-            VStack(alignment: .leading) {
+            VStack(spacing: 20) {
                 
-                // ヘッダービュー: 画像、レベル、バー、名前
+                // ヘッダービュー（カード風にカスタマイズ）
                 HeaderView(mainLevel: statusManager.userProfile.level)
-                    .padding(.horizontal, 50)
-                    .padding(.top, 50)
+                    .padding(.horizontal, 16)
+                    .padding(.top, 20)
                 
                 // トレーニング項目のリスト
-                List {
-                    ForEach($statusManager.trainingList) { $training in
-                        NavigationLink(destination: TrainingView(training: $training)) {
-                            TrainingRowView(training: training)
+                ScrollView {
+                    VStack(spacing: 15) {  // 各要素の間にスペースを追加
+                        if statusManager.trainingList.isEmpty {
+                            Text("まだアイテムがありません")
+                                .font(.title2)
+                                .foregroundColor(.gray)
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                        } else {
+                            ForEach($statusManager.trainingList) { $training in
+                                NavigationLink(destination: TrainingView(training: $training)) {
+                                    TrainingRowView(training: training)
+                                        .padding()
+                                        .background(Color.white)  // カード風の背景色
+                                        .cornerRadius(12)         // 角を丸く
+                                        .shadow(color: Color.black.opacity(0.2), radius: 5, x: 0, y: 2)  // 軽いシャドウで区切り
+                                        .frame(maxWidth: .infinity, alignment: .leading)  // 横幅を最大に設定
+                                }
+                            }
                         }
                     }
+                    .padding(.horizontal, 16)
+                    .padding(.top, 16)
                 }
-                
+                .background(Color(UIColor.white).opacity(0.8)) // リスト全体に背景色
+                .cornerRadius(12)
+                .padding(.horizontal, 16)  // 左右の余白を統一
+
                 Spacer()
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)  // 背景を全画面に広げる
+            .background(LinearGradient(gradient: Gradient(colors: [Color.blue.opacity(0.2), Color.blue.opacity(0.1)]), startPoint: .top, endPoint: .bottom)) // 全体背景
         }
     }
 }
@@ -46,76 +65,61 @@ struct HeaderView: View {
     @EnvironmentObject var statusManager: StatusManager
     
     var body: some View {
-        HStack {
-            // 丸いプロフィール画像
-            Image(systemName: "person.circle.fill")
-                .resizable()
-                .frame(width: 50, height: 50)
-                .clipShape(Circle())
-            
-            // レベルとバー
-            VStack(alignment: .leading) {
-                HStack {
-                    Text("Lv,")
-                        .font(.caption)
-                    Text("\(statusManager.overallLevel * 100, specifier: "%.2f")")  // レベル表示
-                        .font(.caption)
+        VStack{
+            HStack(spacing: 20) {
+                // 丸いプロフィール画像
+                Image(systemName: "person.circle.fill")
+                    .resizable()
+                    .frame(width: 60, height: 60)
+                    .foregroundColor(.blue)
+                    .background(Circle().fill(Color.white.opacity(0.8)))
+                    .clipShape(Circle())
+                    .shadow(radius: 4)
+                
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 5) {
+                        Text("\(statusManager.userProfile.name)")
+                            .font(.caption)
+                            .fontWeight(.bold)
+                        Spacer()
+                        Image(systemName: "star.fill")
+                            .foregroundColor(.yellow)
+                            .font(.caption)
+                        Text("Lv, ")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text("\(statusManager.overallLevel * 100, specifier: "%.2f")")
+                            .font(.caption)
+                            .fontWeight(.bold)
+                        Spacer()
+                    }
+                    
+                    // ゲーム風の進行状況バー
+                    CustomProgressBar(progress: statusManager.overallLevel)
+                        .frame(width: 200, height: 20)
+                        .padding(.top, 5)
+                    
                 }
-                
-      
-//                ProgressView(value: statusManager.overallLevel)
-//                    .progressViewStyle(LinearProgressViewStyle())
-//                    .frame(width: 100)
-                
-                
-                // ゲーム風の進行状況バー
-                CustomProgressBar(progress: statusManager.overallLevel)
-                    .frame(width: 250, height: 25)
-                    .padding(.top, 10)
-                
-                
-                
-                // 名前
-                Text("\(statusManager.userProfile.name)")
-                    .font(.title2)
+                Spacer()
             }
-            .padding(.horizontal, 20)
+            HStack{
+                Text("目標 : ")
+                Text("\(statusManager.userProfile.Goal)")
+            }
+            .padding(10)
+            .font(.caption)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .fontWeight(.bold)
+            .background(RoundedRectangle(cornerRadius: 8).strokeBorder(Color.gray.opacity(0.5), lineWidth: 1)) // 半透明の枠線
+            
         }
+        .padding()
+        .background(Color(.white))
+        .cornerRadius(12)
+        .shadow(color: Color.black.opacity(0.2), radius: 5, x: 0, y: 4)
+        .frame(maxWidth: .infinity, alignment: .center)  // 横幅を最大に設定
     }
 }
-
-
-
-// 洗練された進行状況バー
-//struct ProgressBarView: View {
-//    var progress: Double
-//    
-//    var body: some View {
-//        ZStack {
-//            // バーの背景（グレー）
-//            RoundedRectangle(cornerRadius: 12)
-//                .fill(Color.gray.opacity(0.2))
-//                .frame(height: 25)
-//            
-//            // 進行状況バー（グラデーション）
-//            RoundedRectangle(cornerRadius: 12)
-//                .fill(LinearGradient(gradient: Gradient(colors: [Color.blue, Color.green]), startPoint: .leading, endPoint: .trailing))
-//                .frame(width: CGFloat(progress) * 250, height: 25)
-//                .animation(.easeInOut(duration: 0.5), value: progress)
-//            
-//            // 進行状況のテキスト（％表示）
-//            Text("\(Int(progress * 100))%")
-//                .foregroundColor(.white)
-//                .bold()
-//                .font(.system(size: 14))
-//                .padding(.leading, 10)
-//                .opacity(progress > 0 ? 1 : 0)  // 進行状況が0の場合は非表示
-//        }
-//    }
-//}
-
-
-
 
 // トレーニング行のビュー
 struct TrainingRowView: View {
@@ -123,84 +127,70 @@ struct TrainingRowView: View {
     @EnvironmentObject var statusManager: StatusManager
 
     var body: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 5) {
             Text(training.name)
-            Spacer()
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundColor(.primary)
+            
             HStack {
                 Text("Lv, \(training.level * 100, specifier: "%.1f")")
                     .font(.caption)
-                
-                // レベルバー
-//                ProgressView(value: training.level)
-//                    .progressViewStyle(LinearProgressViewStyle())
-//                    .frame(width: 100)
-                
+                    .foregroundColor(.secondary)
                 
                 CustomProgressBarSmall(progress: training.level)
-                    .frame(width: 150, height: 25)
-      //              .padding(.top, 10)
-                
-                
-                
+                    .frame(width: 150, height: 8)
+                    .padding(.leading, 10)
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)  // 横幅を最大に設定
     }
-
 }
 
-
-
-
-
-
-// 進行状況バー（完全カスタムな実装）
+// カスタム進行状況バー
 struct CustomProgressBar: View {
     var progress: Double
     
     var body: some View {
-        HStack {
-            ZStack {
-                // 背景色
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.gray.opacity(0.2))
-                    .frame(height: 20)
-                
-                // 進行状況バー
-                GeometryReader { geometry in
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(LinearGradient(gradient: Gradient(colors: [Color.blue, Color.green]), startPoint: .leading, endPoint: .trailing))
-                        .frame(width: CGFloat(progress) * geometry.size.width, height: 20)
-                        .animation(.easeInOut(duration: 0.5), value: progress)
-                }
-            }
-            .frame(height: 20) // 高さの指定
-
-
+        ZStack(alignment: .leading) {
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.gray.opacity(0.3))
+                .frame(height: 10)
+            
+            RoundedRectangle(cornerRadius: 10)
+                .fill(LinearGradient(gradient: Gradient(colors: [Color.blue, Color.purple]), startPoint: .leading, endPoint: .trailing))
+                .frame(width: CGFloat(progress) * 200, height: 10)
+                .animation(.easeInOut(duration: 0.5), value: progress)
         }
     }
 }
 
-
+// 小さいカスタム進行状況バー
 struct CustomProgressBarSmall: View {
     var progress: Double
     
     var body: some View {
-        HStack {
-            ZStack {
-                // 背景色
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.gray.opacity(0.2))
-                    .frame(height: 10) // 小さい高さ
-                
-                // 進行状況バー
-                GeometryReader { geometry in
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(LinearGradient(gradient: Gradient(colors: [Color.blue, Color.green]), startPoint: .leading, endPoint: .trailing))
-                        .frame(width: CGFloat(progress) * geometry.size.width, height: 10) // 小さい高さ
-                        .animation(.easeInOut(duration: 0.5), value: progress)
-                }
-            }
-            .frame(height: 10) // 高さの指定
+        ZStack(alignment: .leading) {
+            RoundedRectangle(cornerRadius: 5)
+                .fill(Color.gray.opacity(0.3))
+                .frame(height: 8)
+            
+            RoundedRectangle(cornerRadius: 5)
+                .fill(LinearGradient(gradient: Gradient(colors: [Color.blue, Color.purple]), startPoint: .leading, endPoint: .trailing))
+                .frame(width: CGFloat(progress) * 150, height: 8)
+                .animation(.easeInOut(duration: 0.5), value: progress)
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
